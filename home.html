@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Home - TokenDate</title>
+  <link rel="icon" type="image/png" href="tokendate.png">
+  <script type="module" src="firebase-setup.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      background: #121212;
+      color: #e0e0e0;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem;
+      text-align: center;
+    }
+    h1 { font-size: 2rem; margin-bottom: 1rem; }
+    #userInfo { margin-bottom: 1rem; }
+    footer { margin-top: auto; color: #666; font-size: 0.9rem; }
+    a {
+      color: #58a6ff;
+      text-decoration: none;
+      margin-top: 1rem;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome to TokenDate</h1>
+  <div id="userInfo">Loading...</div>
+  <div>Points: <span id="points">...</span></div>
+  <a href="leaderboard.html">View Leaderboard</a>
+  <footer>© 2025 Guahh Studios</footer>
+
+  <script type="module">
+    import { getClientSecret } from './unknown.js';
+    import {
+      doc, setDoc, getDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const db = window.firebaseDB;
+    const code = new URLSearchParams(location.search).get("code");
+    const clientId = "1385860410011549736";
+    const redirectUri = "http://127.0.0.1:3000/home.html";
+
+    function getAgeYears(discordId) {
+      const epoch = 1420070400000;
+      const timestamp = Number(BigInt(discordId) >> 22n) + epoch;
+      return (Date.now() - timestamp) / (1000 * 60 * 60 * 24 * 365);
+    }
+
+    function calcPoints(age) {
+      if (age < 1) return 100;
+      if (age < 2) return 500;
+      if (age < 3) return 1500;
+      return 3000;
+    }
+
+    async function exchangeCode(code) {
+      const secret = getClientSecret();
+      const body = new URLSearchParams({
+        client_id: clientId,
+        client_secret: secret,
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: redirectUri,
+        scope: "identify"
+      });
+
+      const res = await fetch("https://discord.com/api/oauth2/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body
+      });
+
+      const data = await res.json();
+      return data.access_token;
+    }
+
+    async function getUser(token) {
+      const res = await fetch("https://discord.com/api/users/@me", {
+        headers: { Authorization: "Bearer " + token }
+      });
+      return res.json();
+    }
+
+    async function main() {
+      if (!code) return window.location.href = "login.html";
+
+      try {
+        const token = await exchangeCode(code);
+        const user = await getUser(token);
+        const userId = user.id;
+        const username = `${user.username}#${user.discriminator}`;
+        const avatar = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+        const age = getAgeYears(userId);
+
+        const userRef = doc(db, "users", userId);
+        const snap = await getDoc(userRef);
+
+        let points;
+
+        if (snap.exists()) {
+          points = snap.data().points ?? calcPoints(age);
+        } else {
+          points = calcPoints(age);
+        }
+
+        await setDoc(userRef, {
+          username,
+          avatar,
+          age: age.toFixed(2),
+          points
+        }, { merge: true });
+
+        document.getElementById("userInfo").textContent = username;
+        document.getElementById("points").textContent = points;
+
+        history.replaceState({}, "", "home.html");
+
+      } catch (err) {
+        document.getElementById("userInfo").textContent = "Login failed.";
+        console.error(err);
+      }
+    }
+
+    main();
+  </script>
+</body>
+</html>

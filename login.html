@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login - TokenDate</title>
+  <link rel="icon" type="image/png" href="tokendate.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0; 
+      height: 100vh;
+      background: #121212;
+      color: #e0e0e0;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      user-select: none;
+    }
+    h1 {
+      font-weight: 600;
+      margin-bottom: 2rem;
+      font-size: 2.5rem;
+      letter-spacing: 0.05em;
+    }
+    button {
+      background: #5865F2;
+      border: none;
+      color: white;
+      padding: 1rem 2.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(88, 101, 242, 0.6);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    button:hover {
+      background: #4752c4;
+      box-shadow: 0 6px 20px rgba(71, 82, 196, 0.8);
+    }
+    footer {
+      position: absolute;
+      bottom: 10px;
+      font-size: 0.85rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>Login with Discord</h1>
+  <button id="loginBtn" aria-label="Login with Discord">Login</button>
+  <footer>© 2025 Guahh Studios</footer>
+
+  <script>
+    const clientId = '1385860410011549736';
+    const redirectUri = 'https://discord.com/oauth2/authorize?client_id=1385860410011549736&response_type=code&redirect_uri=https%3A%2F%2Fgithub.com%2FGwishyman%2Ftokendate%2Fhome.html&scope=identify';
+    const scope = 'identify';
+
+    document.getElementById('loginBtn').onclick = () => {
+      const url = `https://discord.com/oauth2/authorize` +
+        `?client_id=${clientId}` +
+        `&response_type=code` +
+        `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+        `&scope=${scope}`;
+      window.location.href = url;
+    };
+  </script>
+</body>
+</html>

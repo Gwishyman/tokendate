@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Leaderboard - TokenDate</title>
+  <link rel="icon" type="image/png" href="tokendate.png">
+  <script type="module" src="firebase-setup.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      background: #121212;
+      color: #e0e0e0;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+    }
+    table {
+      width: 100%;
+      max-width: 600px;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      border-bottom: 1px solid #2a2a2a;
+      padding: 1rem;
+    }
+    th {
+      background: #1e1e1e;
+    }
+    td img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      vertical-align: middle;
+      margin-right: 0.5rem;
+    }
+    a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+    footer {
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>Leaderboard</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>User</th>
+        <th>Points</th>
+      </tr>
+    </thead>
+    <tbody id="boardBody">
+      <tr><td colspan="3">Loading...</td></tr>
+    </tbody>
+  </table>
+  <footer>© 2025 Guahh Studios</footer>
+
+  <script type="module">
+    import {
+      collection, getDocs, query, orderBy, limit
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const db = window.firebaseDB;
+    const tbody = document.getElementById("boardBody");
+
+    async function loadBoard() {
+      const q = query(collection(db, "users"), orderBy("points", "desc"), limit(100));
+      const snap = await getDocs(q);
+
+      tbody.innerHTML = ""; // clear loading text
+      let rank = 1;
+
+      snap.forEach(doc => {
+        const d = doc.data();
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${rank++}</td>
+          <td>
+            <img src="${d.avatar}" alt="pfp">
+            <a href="profile.html?id=${doc.id}">${d.username}</a>
+          </td>
+          <td>${d.points}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    loadBoard();
+  </script>
+</body>
+</html>
